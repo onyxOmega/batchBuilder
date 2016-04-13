@@ -12,6 +12,7 @@
 #include <sstream>
 #include <vector>
 #include <algorithm>
+#include <iomanip> 
 
 
 using namespace std;
@@ -20,10 +21,11 @@ int main( int argc , char* argv[] )
 {
 	ifstream inputFile;
 	vector<string> inputStringArray;
+	int runIndexInt = 0;
 
 	if (argc < 2) 
 		{
-			std::cerr << "Usage: " << argv[0] << " <INPUT FILE>. Use 'default' for all default values" << std::endl;
+			cerr << "Usage: " << argv[0] << " <INPUT FILE>. Use 'default' for all default values" << endl;
 			return 1;
 		}
 	else
@@ -39,11 +41,9 @@ int main( int argc , char* argv[] )
 			inputFile.open(inputFileName);
 			while (!inputFile.eof())
 			{	
-				char buffer[30];
-				inputFile.getline(buffer, 30);
-				
-				string lineString(buffer);
-				lineString.erase( std::remove(lineString.begin(), lineString.end(), ' '), lineString.end());
+				string lineString;
+				getline(inputFile, lineString);
+				lineString.erase(remove(lineString.begin(), lineString.end(), ' '), lineString.end());
 
 				inputStringArray.push_back(lineString);
 			}
@@ -54,14 +54,25 @@ int main( int argc , char* argv[] )
 	ifstream batchIndex;
 	batchIndex.open("results/batchIndex.txt");
 	
-	while (!batchIndex.eof())
-	{	
-		stringstream inputStream;
-		char buffer[30];
-		batchIndex.getline(buffer, 30);
-		string lineString(buffer);
-		lineString.erase( std::remove(lineString.begin(), lineString.end(), ' '), lineString.end());
-	
+	if(batchIndex){
+		while(!batchIndex.eof())
+		{	
+			string wordString;
+			batchIndex >> wordString;
+			if(wordString == "Run:")
+			{
+				string runIndexString;
+				batchIndex >> runIndexString;
+				string::size_type sz; 
+				runIndexInt = stoi (runIndexString,&sz);
+				cout << runIndexInt << endl;
+			}
+		}
+	}
+	else
+	{
+		cout << "Error, 'batchIndex.txt' is missing." << endl;
+		return 1;
 	}
 	
 	if (remove("root_shell.sh")) perror("Error removing root_shell.sh");
@@ -73,7 +84,9 @@ int main( int argc , char* argv[] )
 	time_t now = time(0);
 	tm* ltm = localtime(&now);	
 
-	rootShell << "mkdir " << "results/SimBatch00001_" << ltm->tm_mon << "-" << ltm->tm_mday  << "-" << ltm->tm_year + 1900 << endl; 
+	
+	// cout << setfill('0') << setw(5) << 25;  // Example of padding leading zeroes for later
+	rootShell << "mkdir " << "results/SimBatch"<< setfill('0') << setw(5) << (runIndexInt + 1) << "_" << ltm->tm_mon << "-" << ltm->tm_mday  << "-" << ltm->tm_year + 1900 << endl; 
 	
 	for(int i = 0; inputStringArray[i] != "END"; i++)
 	{
