@@ -1,3 +1,3 @@
 #!/bin/bash
 
-mkdir results/SimBatch00002_3-12-2016
+mkdir results/SimBatch00001_3-13-2016
